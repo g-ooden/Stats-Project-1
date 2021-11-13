@@ -8,7 +8,7 @@ library(tidyverse)
 library(countrycode)
 library(dplyr)
 passwords <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-14/passwords.csv')
-cia <- readr::read_csv('/Users/harrison/Desktop/Statistics/Projects/Project 1/Stats-Project-1/cia_factbook.csv') #Change this to your csv's directory
+cia <- readr::read_csv('https://raw.githubusercontent.com/nichollsharrisonj/Stats-Project-1/6c8fead670af930cf91de6359b2f7d7c2f483912/cia_factbook.csv') 
 cia <- cia %>% mutate(
   continent = countrycode(country,origin="country.name",destination="continent"),
   density = (population/area),
@@ -125,7 +125,17 @@ ggplot (data=cia, aes(x=life_exp_at_birth)) +
   ylab("Count") + ggtitle('Figure 4')
 ```
 
+### Analysis of Data Visualizations:
 
+Figure One: The proportion of internet users in the population of a given country correlates positively with life expectancy at birth. As indicated by the shading — indicating continent — these trends are not evenly dispersed across the nations of the world. Africa is clustered largely around the bottom left, with lower internet usership and life expectancy, while Europe is largely clustered in the top right, with higher internet usership and life expectancy. Oceania, Asia and the Americas are distributed across the plot. 
+
+Figure Two: Birth rate appears to be inversely proportional to life expectancy at birth, meaning that individuals in countries with higher life expectancy tend to have fewer children. As indicated by the shading — indicating continent — these trends are not evenly dispersed across the nations of the world. Africa and Europe again find themselves at opposing ends of the plot, with higher birth rates, lower life expectancy, and lower birth rates, higher life expectancy respectively. Once more, Oceania, Asia, and the Americas lie dispersed in the middle. 
+
+Figure Three: Africa and Europe take the upper end of our death rate histogram, with Asia, Oceania, and the Americas occupying the lower end. Africa seems to have the largest range in death rate. The graph takes a minor lower skew, though it makes an asymmetrical peak in greatest frequency around 8 deaths per 1,000 population.
+
+Figure Four: Africa takes most of the lower end of our life expectancy histogram, while the Americas, Asia, Europe, and Oceania carry similar ranges, with Asia as the lower of the bunch and Europe as the upper of the four. Life expectancy seems to have an upper skew across all countries, with the highest frequency occurring around the 75-76 range.
+
+Figure Six: In excluding Africa, we are provided with a new angle on Figure One. While the relationship is the same, the correlation appears to be less strong. The bias seen in Figure One also appears lower.
 
 ### Statistical methods
 #### Figure 5
@@ -144,48 +154,56 @@ groups <- cia %>%
       )
 groups
 ```
-##### Linear model with Africa included
+
+### Linear Models of Figure 1...
 ```{r}
 
 lm_mod <- lm(life_exp_at_birth ~ internet_usage_proportion, data = cia)
+
+ggplot (data=cia, aes(x=internet_usage_proportion, y=life_exp_at_birth)) + 
+  geom_point(aes(color = continent,size=density)) + 
+  geom_abline(aes(slope=coef(lm_mod)[[2]], intercept = coef(lm_mod)[[1]], colour='Best Fit Linear Model'), size=1) + 
+  xlab('Internet users / population') + ylab('Life Expentancy at birth') + 
+  ggtitle('Figure 6')
+
 summary(lm_mod)
 
 ```
-
-
-
 
 ```{r}
 noafrica <- cia %>% 
   filter(continent != "Africa")
 
-ggplot (data=noafrica, aes(x=internet_usage_proportion, y=life_exp_at_birth)) + geom_point(aes(color = continent,size=density)) + xlab('Internet users / population') + ylab('Life Expentancy at birth') + ggtitle('Figure 6 - Africa Excluded')
-
 lm_mod_noafrica <- lm(life_exp_at_birth ~ internet_usage_proportion, data=noafrica)
+
+ggplot (data=noafrica, aes(x=internet_usage_proportion, y=life_exp_at_birth)) +
+  geom_point(aes(color = continent,size=density)) +
+  geom_abline(aes(slope=coef(lm_mod_noafrica)[[2]], intercept = coef(lm_mod_noafrica)[[1]], colour='Best Fit Linear Model'), size=1) + 
+  xlab('Internet users / population') + ylab('Life Expentancy at birth') +
+  ggtitle('Figure 7 - Africa Excluded')
+
 summary(lm_mod_noafrica)
 ```
 
+```{r}
+above65 <- cia %>%
+  filter(life_exp_at_birth >= 65)
 
-### Statistical Methods:
+lm_mod_above65 <- lm(life_exp_at_birth ~ internet_usage_proportion, data=above65)
+
+ggplot (data=above65, aes(x=internet_usage_proportion, y=life_exp_at_birth)) + 
+  geom_point(aes(color = continent,size=density)) + 
+  geom_abline(aes(slope=coef(lm_mod_above65)[[2]], intercept = coef(lm_mod_above65)[[1]], colour='Best Fit Linear Model'), size=1) +
+  xlab('Internet users / population') + ylab('Life Expentancy at birth') + 
+  ggtitle('Figure 8 - Life Expectancy > 65')
+
+summary(lm_mod_above65)
+```
+
+### Analysis in Regard to Statistical Methods:
 
 In performing an observational study, we are limited in the viability of performing randomization tests on our data. We can find correlations in our plots using R^2 and find the differences in means between different categorical groups, in our case Continents seems apt for a geopolitical analysis of the data. However, given that our sample population is itself the true population of all countries, there are no methods by which we can fabricate more samples via bootstrapping.
 
-So as to glean a better understanding of the data observed, several steps were taken to parse from it usable information. These included:
+Figure Five: Here we have found the mean birth rate of each continent, and each mean’s difference from the global mean. From this we can glean that the Americas, Asia, and Oceania all lie very close to the global mean, while Africa and Europe both fall in the upper and lower end respectively. 
 
-Calculating the R^2: 0.5
-
-Finding the mean birth rate per continent: (See Figure Six) 
-
-Finding the difference from the mean of the mean birth rates per continent: (See Figure Six)
-
-### Analysis of Data Visualizations:
-
-Figure One: The proportion of internet users in the population of a given country correlates positively with life expectancy at birth. As indicated by the shading — indicating continent — these trends are not evenly dispersed across the nations of the world. Africa is clustered largely around the bottom left, with lower internet usership and life expectancy, while Europe is largely clustered in the top right, with higher internet usership and life expectancy. Oceania, Asia and the Americas are distributed across the plot. 
-
-Figure Two: Birth rate appears to be inversely proportional to life expectancy at birth, meaning that individuals in countries with higher life expectancy tend to have fewer children. As indicated by the shading — indicating continent — these trends are not evenly dispersed across the nations of the world. Africa and Europe again find themselves at opposing ends of the plot, with higher birth rates, lower life expectancy, and lower birth rates, higher life expectancy respectively. Once more, Oceania, Asia, and the Americas lie dispersed in the middle. 
-
-Figure Three: Africa and Europe take the upper end of our death rate histogram, with Asia, Oceania, and the Americas occupying the lower end. Africa seems to have the largest range in death rate. The graph takes a minor lower skew, though it makes an asymmetrical peak in greatest frequency around 8 deaths per 1,000 population.
-
-Figure Four: Africa takes most of the lower end of our life expectancy histogram, while the Americas, Asia, Europe, and Oceania carry similar ranges, with Asia as the lower of the bunch and Europe as the upper of the four. Life expectancy seems to have an upper skew across all countries, with the highest frequency occurring around the 75-76 range.
-
-Figure Six: In excluding Africa, we are provided with a new angle on Figure One. While the relationship is the same, the correlation appears to be less strong. The bias seen in Figure One also appears lower.
+Figure Six, Figure Seven, and Figure Eight: Here we have generated linear models based on Figure 1, and computed R^2 of each linear model within the graphs. The greatest R^2 value, and thereby the best-fit linear model, is calculated to be that of Figure Six, the graph which includes all countries, rather than Figure Seven or Figure Eight which exclude regions of generally low percentages of internet usage or exclude countries which do not meet a threshold life expectancy.
